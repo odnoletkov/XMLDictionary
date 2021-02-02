@@ -2,14 +2,18 @@ import XCTest
 @testable import XMLDictionary
 
 final class XMLDictionaryTests: XCTestCase {
-    func testExample() {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct
-        // results.
-        XCTAssertEqual(XMLDictionary().text, "Hello, World!")
+
+    func testExample() throws {
+        XCTAssertEqual(
+            try NSMutableDictionary(XML: "<xml/>".data(using: .utf8)!),
+            ["xml": NSNull()]
+        )
     }
 
-    static var allTests = [
-        ("testExample", testExample),
-    ]
+    func testError() throws {
+        XCTAssertThrowsError(try NSMutableDictionary(XML: "xml".data(using: .utf8)!), "") {
+            XCTAssertEqual($0 as NSError, NSError(domain: XMLParser.errorDomain, code: XMLParser.ErrorCode.internalError.rawValue))
+        }
+    }
+
 }
