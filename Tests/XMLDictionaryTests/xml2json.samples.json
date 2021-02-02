@@ -1,0 +1,82 @@
+[
+  {
+    "xml": "<e/>",
+    "json": "{\n  \"e\":null\n}"
+  },
+  {
+    "xml": "<e>text</e>",
+    "json": "{\n  \"e\":\"text\"\n}"
+  },
+  {
+    "xml": "<e name=\"value\" />",
+    "json": "{\n  \"e\":{\"@name\":\"value\"}\n}"
+  },
+  {
+    "xml": "<e name=\"value\">text</e>",
+    "json": "{\n  \"e\":{\n    \"@name\":\"value\",\n    \"#text\":\"text\"\n  }\n}"
+  },
+  {
+    "xml": "<e> <a>text</a> <b>text</b> </e>",
+    "json": "{\n  \"e\":{\n    \"a\":\"text\",\n    \"b\":\"text\"\n  }\n}"
+  },
+  {
+    "xml": "<e> <a>text</a> <a>text</a> </e>",
+    "json": "{\n  \"e\":{\"a\":[\n      \"text\",\n      \"text\"\n    ]}\n}"
+  },
+  {
+    "xml": "<e> text <a>text</a> </e>",
+    "json": "{\n  \"e\":{\n    \"#text\":\" text \",\n    \"a\":\"text\"\n  }\n}"
+  },
+  {
+    "xml": "<a>hello</a>",
+    "json": "{\n  \"a\":\"hello\"\n}"
+  },
+  {
+    "xml": "<a x=\"y\">hello</a>",
+    "json": "{\n  \"a\":{\n    \"@x\":\"y\",\n    \"#text\":\"hello\"\n  }\n}"
+  },
+  {
+    "xml": "<a id=\"a\"><b id=\"b\">hey!</b></a>",
+    "json": "{\n  \"a\":{\n    \"@id\":\"a\",\n    \"b\":{\n      \"@id\":\"b\",\n      \"#text\":\"hey!\"\n    }\n  }\n}"
+  },
+  {
+    "xml": "<a>x<c/>y</a>",
+    "json": "{\n  \"a\":\"x<c/>y\"\n}"
+  },
+  {
+    "xml": "<x u=\"\"/>",
+    "json": "{\n  \"x\":{\"@u\":\"\"}\n}"
+  },
+  {
+    "xml": "<html> <head>   <title>Xml/Json</title>   <meta name=\"x\" content=\"y\" /> </head> <body> </body></html>",
+    "json": "{\n  \"html\":{\n    \"head\":{\n      \"title\":\"Xml/Json\",\n      \"meta\":{\n        \"@name\":\"x\",\n        \"@content\":\"y\"\n      }\n    },\n    \"body\":null\n  }\n}"
+  },
+  {
+    "xml": "<ol class=\"xoxo\">   <li>Subject 1     <ol>       <li>subpoint a</li>      <li>subpoint b</li>     </ol>   </li>   <li><span>Subject 2</span>     <ol compact=\"compact\">       <li>subpoint c</li>       <li>subpoint d</li>     </ol>  </li></ol>",
+    "json": "{\n  \"ol\":{\n    \"@class\":\"xoxo\",\n    \"li\":[\n      {\n        \"#text\":\"Subject 1     \",\n        \"ol\":{\"li\":[\n            \"subpoint a\",\n            \"subpoint b\"\n          ]}\n      },\n      {\n        \"span\":\"Subject 2\",\n        \"ol\":{\n          \"@compact\":\"compact\",\n          \"li\":[\n            \"subpoint c\",\n            \"subpoint d\"\n          ]\n        }\n      }\n    ]\n  }\n}"
+  },
+  {
+    "xml": "<span class=\"vevent\">  <a class=\"url\" href=\"http://www.web2con.com/\">    <span class=\"summary\">Web 2.0 Conference</span>    <abbr class=\"dtstart\" title=\"2005-10-05\">October 5</abbr>    <abbr class=\"dtend\" title=\"2005-10-08\">7</abbr>    <span class=\"location\">Argent Hotel, San Francisco, CA</span>  </a></span>",
+    "json": "{\n  \"span\":{\n    \"@class\":\"vevent\",\n    \"a\":{\n      \"@class\":\"url\",\n      \"@href\":\"http://www.web2con.com/\",\n      \"span\":[\n        {\n          \"@class\":\"summary\",\n          \"#text\":\"Web 2.0 Conference\"\n        },\n        {\n          \"@class\":\"location\",\n          \"#text\":\"Argent Hotel, San Francisco, CA\"\n        }\n      ],\n      \"abbr\":[\n        {\n          \"@class\":\"dtstart\",\n          \"@title\":\"2005-10-05\",\n          \"#text\":\"October 5\"\n        },\n        {\n          \"@class\":\"dtend\",\n          \"@title\":\"2005-10-08\",\n          \"#text\":\"7\"\n        }\n      ]\n    }\n  }\n}"
+  },
+  {
+    "xml": "<e>\n  <![CDATA[ .. some data .. ]]>\n</e>",
+    "json": "{\n  \"e\":{\"#cdata\":\" .. some data .. \"}\n}"
+  },
+  {
+    "xml": "<e>\n  <a />\n  <![CDATA[ .. some data .. ]]>\n  <b />\n</e>",
+    "json": "{\n  \"e\":{\n    \"a\":null,\n    \"#cdata\":\" .. some data .. \",\n    \"b\":null\n  }\n}"
+  },
+  {
+    "xml": "<e>\n  some text\n  <![CDATA[ .. some data .. ]]>\n  more text\n</e>",
+    "json": "{\n  \"e\":\"\\n  some text\\n  <![CDATA[ .. some data .. ]]>\\n  more text\\n\"\n}"
+  },
+  {
+    "xml": "<e>\n  some text\n  <![CDATA[ .. some data .. ]]>\n  <a />\n</e>",
+    "json": "{\n  \"e\":{\n    \"#text\":\"\\n  some text\\n  \",\n    \"#cdata\":\" .. some data .. \",\n    \"a\":null\n  }\n}"
+  },
+  {
+    "xml": "<e>\n  <![CDATA[ .. some data .. ]]>\n  <![CDATA[ .. more data .. ]]>\n</e>",
+    "json": "{\n  \"e\":\"<![CDATA[ .. some data .. ]]><![CDATA[ .. more data .. ]]>\"\n}"
+  }
+]

@@ -15,6 +15,7 @@ let package = Package(
             dependencies: []),
         .testTarget(
             name: "XMLDictionaryTests",
-            dependencies: ["XMLDictionary"]),
+            dependencies: ["XMLDictionary"],
+            resources: [.copy("xml2json.samples.json")]),
     ]
 )
