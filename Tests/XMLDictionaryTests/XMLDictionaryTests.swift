@@ -6,13 +6,13 @@ final class XMLDictionaryTests: XCTestCase {
 
     func testExample() throws {
         XCTAssertEqual(
-            try NSMutableDictionary(XML: "<xml/>".data(using: .utf8)!),
+            try NSDictionary(XML: "<xml/>".data(using: .utf8)!),
             ["xml": NSNull()]
         )
     }
 
     func testError() throws {
-        XCTAssertThrowsError(try NSMutableDictionary(XML: "xml".data(using: .utf8)!), "") {
+        XCTAssertThrowsError(try NSDictionary(XML: "xml".data(using: .utf8)!), "") {
             XCTAssertEqual($0 as NSError, NSError(domain: XMLParser.errorDomain, code: XMLParser.ErrorCode.internalError.rawValue))
         }
     }
@@ -34,14 +34,14 @@ final class XMLDictionaryTests: XCTestCase {
         for sample in samples {
 
             guard sample.semistructured != true else {
-                XCTAssertThrowsError(try NSMutableDictionary(XML: sample.xmlData), "") {
+                XCTAssertThrowsError(try NSDictionary(XML: sample.xmlData), "") {
                     XCTAssertEqual($0 as NSError, XMLParser.DictionaryError.notSupportedSemiStructuredXML as NSError)
                 }
                 continue
             }
 
             XCTAssertEqual(
-                try NSMutableDictionary(XML: sample.xmlData),
+                try NSDictionary(XML: sample.xmlData),
                 try JSONSerialization.jsonObject(with: sample.json.data(using: .utf8)!) as! NSDictionary,
                 sample.xml
             )

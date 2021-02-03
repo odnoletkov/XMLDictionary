@@ -1,19 +1,29 @@
 import Foundation
 
-extension NSMutableDictionary {
-    public convenience init(XML data: Data) throws {
-        self.init()
-        let parser = XMLParser(data: data)
-        let delegate = Delegate(root: self)
-        parser.delegate = delegate
-        guard parser.parse() else {
-            throw delegate.abortError ?? parser.parserError!
-        }
-        precondition(delegate.stack.count == 1)
+public extension NSDictionary {
+    convenience init(XML data: Data) throws {
+        self.init(dictionary: try XMLParser(data: data).parseDictionary())
     }
 }
 
-extension NSDictionary {
+public extension XMLParser {
+    func parseDictionary() throws -> NSMutableDictionary {
+        precondition(delegate == nil)
+        let delegate = Delegate()
+        self.delegate = delegate
+        guard parse() else {
+            throw delegate.abortError ?? parserError!
+        }
+        precondition(delegate.stack.count == 1)
+        return delegate.stack.last!
+    }
+
+    enum DictionaryError: Error {
+        case notSupportedSemiStructuredXML
+    }
+}
+
+extension NSMutableDictionary {
     var normalized: Any {
         if count == 0 {
             return NSNull()
@@ -23,15 +33,7 @@ extension NSDictionary {
             return self
         }
     }
-}
 
-extension XMLParser {
-    enum DictionaryError: Error {
-        case notSupportedSemiStructuredXML
-    }
-}
-
-extension NSMutableDictionary {
     func normalize() throws {
         let texts = (self["#text"] as! [String]? ?? [])
             .filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
@@ -55,7 +57,7 @@ extension NSMutableDictionary {
         }
 
         for (key, value) in self where value is NSArray {
-            let children = (value as! [NSDictionary]).map(\.normalized)
+            let children = (value as! [NSMutableDictionary]).map(\.normalized)
             self[key] = children.count == 1 ? children[0] : children
         }
     }
@@ -70,13 +72,9 @@ extension NSMutableDictionary {
 }
 
 class Delegate: NSObject, XMLParserDelegate {
-    var stack: [NSMutableDictionary]
+    var stack = [NSMutableDictionary()]
 
     var abortError: Error?
-
-    init(root: NSMutableDictionary) {
-        stack = [root]
-    }
 
     func parser(_ parser: XMLParser, didStartElement elementName: String, namespaceURI: String?, qualifiedName qName: String?, attributes attributeDict: [String : String] = [:]) {
 
