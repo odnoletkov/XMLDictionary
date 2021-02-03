@@ -12,7 +12,8 @@ public extension XMLParser {
         let delegate = Delegate()
         self.delegate = delegate
         guard parse() else {
-            throw delegate.abortError ?? parserError!
+            let error = delegate.abortError ?? parserError!
+            throw (error as NSError).merging(userInfo: ["path": delegate.currentPath])
         }
         precondition(delegate.stack.count == 1)
         return delegate.node
@@ -101,14 +102,16 @@ class Delegate: NSObject, XMLParserDelegate {
 
     func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName qName: String?) {
         parserDidEndDocument(parser)
-        stack.removeLast()
+        if abortError == nil {
+            stack.removeLast()
+        }
     }
 
     func parserDidEndDocument(_ parser: XMLParser) {
         do {
             try node.normalize()
         } catch {
-            abortError = (error as NSError).merging(userInfo: ["path": currentPath])
+            abortError = error
             parser.abortParsing()
         }
     }
@@ -134,11 +137,14 @@ extension NSError {
     }
 
     func merging(userInfo: [String: Any]) -> NSError {
-        let error = self as NSError
-        return NSError(
-            domain: error.domain,
-            code: error.code,
-            userInfo: error.userInfo.merging(userInfo) { $1 }
+        .init(
+            domain: domain,
+            code: code,
+            userInfo: userInfo.merging(userInfo) { $1 }
         )
+    }
+
+    var identity: NSError {
+        .init(domain: domain, code: code)
     }
 }

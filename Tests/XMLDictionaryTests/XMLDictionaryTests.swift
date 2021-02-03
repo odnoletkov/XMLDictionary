@@ -1,5 +1,6 @@
 import XCTest
 import Foundation
+import libxml2
 @testable import XMLDictionary
 
 final class XMLDictionaryTests: XCTestCase {
@@ -13,11 +14,22 @@ final class XMLDictionaryTests: XCTestCase {
 
     func testError() throws {
         XCTAssertThrowsError(try NSDictionary(XML: "xml".data(using: .utf8)!), "") {
-            XCTAssertEqual($0 as NSError, NSError(domain: XMLParser.errorDomain, code: XMLParser.ErrorCode.internalError.rawValue))
+            XCTAssertEqual(
+                ($0 as NSError).identity,
+                NSError(domain: XMLParser.errorDomain, code: XMLParser.ErrorCode.internalError.rawValue)
+            )
         }
     }
 
     func testErrorPath() throws {
+        XCTAssertThrowsError(try NSDictionary(XML: "<a><b a=\"1\"><c/><d></b></a>".data(using: .utf8)!), "") {
+            XCTAssertEqual(
+                $0 as NSError,
+                NSError(domain: XMLParser.errorDomain, code: Int(XML_ERR_USER_STOP.rawValue))
+                    .merging(userInfo: ["path": ["a", "b", "d"]])
+            )
+        }
+
         XCTAssertThrowsError(try NSDictionary(XML: "<a><b/><b>text<c/>text</b></a>".data(using: .utf8)!), "") {
             XCTAssertEqual(
                 $0 as NSError,
@@ -50,9 +62,8 @@ final class XMLDictionaryTests: XCTestCase {
             guard sample.semistructured != true else {
                 XCTAssertThrowsError(try NSDictionary(XML: sample.xmlData), "") {
                     XCTAssertEqual(
-                        $0 as NSError,
-                        NSError(dictionaryError: .notSupportedSemiStructuredXML)
-                            .merging(userInfo: ($0 as NSError).userInfo)
+                        ($0 as NSError).identity,
+                        NSError(dictionaryError: .notSupportedSemiStructuredXML).identity
                     )
                 }
                 continue
