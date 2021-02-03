@@ -35,12 +35,21 @@ extension NSMutableDictionary {
     func normalize() throws {
         let texts = (self["#text"] as! [String]? ?? [])
             .filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
-
         switch texts.count {
         case 0:
             self["#text"] = nil
         case 1:
             self["#text"] = texts[0]
+        default:
+            throw XMLParser.DictionaryError.notSupportedSemiStructuredXML
+        }
+
+        let cdatas = self["#cdata"] as! [String]? ?? []
+        switch cdatas.count {
+        case 0:
+            break
+        case 1:
+            self["#cdata"] = cdatas[0]
         default:
             throw XMLParser.DictionaryError.notSupportedSemiStructuredXML
         }
@@ -84,6 +93,10 @@ class Delegate: NSObject, XMLParserDelegate {
 
     func parser(_ parser: XMLParser, foundCharacters string: String) {
         stack.last!.append(value: string, forKey: "#text")
+    }
+
+    func parser(_ parser: XMLParser, foundCDATA CDATABlock: Data) {
+        stack.last!.append(value: String(data: CDATABlock, encoding: .utf8)!, forKey: "#cdata")
     }
 
     func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName qName: String?) {

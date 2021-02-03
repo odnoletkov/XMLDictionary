@@ -61,27 +61,24 @@
     "json": "{\n  \"span\":{\n    \"@class\":\"vevent\",\n    \"a\":{\n      \"@class\":\"url\",\n      \"@href\":\"http://www.web2con.com/\",\n      \"span\":[\n        {\n          \"@class\":\"summary\",\n          \"#text\":\"Web 2.0 Conference\"\n        },\n        {\n          \"@class\":\"location\",\n          \"#text\":\"Argent Hotel, San Francisco, CA\"\n        }\n      ],\n      \"abbr\":[\n        {\n          \"@class\":\"dtstart\",\n          \"@title\":\"2005-10-05\",\n          \"#text\":\"October 5\"\n        },\n        {\n          \"@class\":\"dtend\",\n          \"@title\":\"2005-10-08\",\n          \"#text\":\"7\"\n        }\n      ]\n    }\n  }\n}"
   },
   {
-    "fails": true,
     "xml": "<e>\n  <![CDATA[ .. some data .. ]]>\n</e>",
     "json": "{\n  \"e\":{\"#cdata\":\" .. some data .. \"}\n}"
   },
   {
-    "fails": true,
     "xml": "<e>\n  <a />\n  <![CDATA[ .. some data .. ]]>\n  <b />\n</e>",
     "json": "{\n  \"e\":{\n    \"a\":null,\n    \"#cdata\":\" .. some data .. \",\n    \"b\":null\n  }\n}"
   },
   {
-    "fails": true,
+    "semistructured": true,
     "xml": "<e>\n  some text\n  <![CDATA[ .. some data .. ]]>\n  more text\n</e>",
     "json": "{\n  \"e\":\"\\n  some text\\n  <![CDATA[ .. some data .. ]]>\\n  more text\\n\"\n}"
   },
   {
-    "fails": true,
     "xml": "<e>\n  some text\n  <![CDATA[ .. some data .. ]]>\n  <a />\n</e>",
     "json": "{\n  \"e\":{\n    \"#text\":\"\\n  some text\\n  \",\n    \"#cdata\":\" .. some data .. \",\n    \"a\":null\n  }\n}"
   },
   {
-    "fails": true,
+    "semistructured": true,
     "xml": "<e>\n  <![CDATA[ .. some data .. ]]>\n  <![CDATA[ .. more data .. ]]>\n</e>",
     "json": "{\n  \"e\":\"<![CDATA[ .. some data .. ]]><![CDATA[ .. more data .. ]]>\"\n}"
   }
