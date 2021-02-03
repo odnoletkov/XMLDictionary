@@ -17,7 +17,7 @@ print(
             withJSONObject: NSDictionary(
                 XML: Data(
                     contentsOf: URL(
-                        fileURLWithPath: ProcessInfo.processInfo.arguments[1]
+                        fileURLWithPath: (ProcessInfo.processInfo.arguments[1] as NSString).expandingTildeInPath
                     )
                 )
             ),
