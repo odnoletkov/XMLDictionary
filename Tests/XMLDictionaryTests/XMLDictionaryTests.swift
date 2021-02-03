@@ -21,16 +21,28 @@ final class XMLDictionaryTests: XCTestCase {
     func testOriginalFixtures() throws {
         struct Sample: Decodable {
             let fails: Bool?
+            let semistructured: Bool?
             let xml: String
             let json: String
+
+            var xmlData: Data { xml.data(using: .utf8)! }
         }
         let samples = try JSONDecoder().decode(
             [Sample].self,
             from: Data(contentsOf: Bundle.module.url(forResource: "xml2json.samples", withExtension: "json")!)
         )
+
         for sample in samples where sample.fails != true {
+
+            guard sample.semistructured != true else {
+                XCTAssertThrowsError(try NSMutableDictionary(XML: sample.xmlData), "") {
+                    XCTAssertEqual($0 as NSError, XMLParser.DictionaryError.notSupportedSemiStructuredXML as NSError)
+                }
+                continue
+            }
+
             XCTAssertEqual(
-                try NSMutableDictionary(XML: sample.xml.data(using: .utf8)!),
+                try NSMutableDictionary(XML: sample.xmlData),
                 try JSONSerialization.jsonObject(with: sample.json.data(using: .utf8)!) as! NSDictionary,
                 sample.xml
             )

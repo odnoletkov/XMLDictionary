@@ -40,7 +40,7 @@
     "json": "{\n  \"a\":{\n    \"@id\":\"a\",\n    \"b\":{\n      \"@id\":\"b\",\n      \"#text\":\"hey!\"\n    }\n  }\n}"
   },
   {
-    "fails": true,
+    "semistructured": true,
     "xml": "<a>x<c/>y</a>",
     "json": "{\n  \"a\":\"x<c/>y\"\n}"
   },

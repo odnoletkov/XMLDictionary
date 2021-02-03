@@ -7,7 +7,7 @@ extension NSMutableDictionary {
         let delegate = Delegate(root: self)
         parser.delegate = delegate
         guard parser.parse() else {
-            throw parser.parserError!
+            throw delegate.abortError ?? parser.parserError!
         }
         precondition(delegate.stack.count == 1)
     }
@@ -25,12 +25,25 @@ extension NSDictionary {
     }
 }
 
+extension XMLParser {
+    enum DictionaryError: Error {
+        case notSupportedSemiStructuredXML
+    }
+}
+
 extension NSMutableDictionary {
-    func normalize() {
-        let text = (self["#text"] as! [String]? ?? [])
+    func normalize() throws {
+        let texts = (self["#text"] as! [String]? ?? [])
             .filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
-            .joined()
-        self["#text"] = text.isEmpty ? nil : text
+
+        switch texts.count {
+        case 0:
+            self["#text"] = nil
+        case 1:
+            self["#text"] = texts[0]
+        default:
+            throw XMLParser.DictionaryError.notSupportedSemiStructuredXML
+        }
 
         for (key, value) in self where value is NSArray {
             let children = (value as! [NSDictionary]).map(\.normalized)
@@ -49,6 +62,8 @@ extension NSMutableDictionary {
 
 class Delegate: NSObject, XMLParserDelegate {
     var stack: [NSMutableDictionary]
+
+    var abortError: Error?
 
     init(root: NSMutableDictionary) {
         stack = [root]
@@ -72,11 +87,21 @@ class Delegate: NSObject, XMLParserDelegate {
     }
 
     func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName qName: String?) {
-        stack.last!.normalize()
+        do {
+            try stack.last!.normalize()
+        } catch {
+            abortError = error
+            parser.abortParsing()
+        }
         stack.removeLast()
     }
 
     func parserDidEndDocument(_ parser: XMLParser) {
-        stack.last!.normalize()
+        do {
+            try stack.last!.normalize()
+        } catch {
+            abortError = error
+            parser.abortParsing()
+        }
     }
 }
