@@ -20,7 +20,6 @@ final class XMLDictionaryTests: XCTestCase {
     /// Source: https://goessner.net/download/prj/jsonxml/xmljson_test.html
     func testOriginalFixtures() throws {
         struct Sample: Decodable {
-            let fails: Bool?
             let semistructured: Bool?
             let xml: String
             let json: String
@@ -32,7 +31,7 @@ final class XMLDictionaryTests: XCTestCase {
             from: Data(contentsOf: Bundle.module.url(forResource: "xml2json.samples", withExtension: "json")!)
         )
 
-        for sample in samples where sample.fails != true {
+        for sample in samples {
 
             guard sample.semistructured != true else {
                 XCTAssertThrowsError(try NSMutableDictionary(XML: sample.xmlData), "") {
