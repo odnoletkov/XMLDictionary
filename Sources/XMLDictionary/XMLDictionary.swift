@@ -27,9 +27,9 @@ extension NSDictionary {
 
 extension NSMutableDictionary {
     func normalize() {
-        let text = (self["#text"] as! NSArray? ?? [])
-            .componentsJoined(by: "")
-            .trimmingCharacters(in: .whitespacesAndNewlines)
+        let text = (self["#text"] as! [String]? ?? [])
+            .filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+            .joined()
         self["#text"] = text.isEmpty ? nil : text
 
         for (key, value) in self where value is NSArray {
