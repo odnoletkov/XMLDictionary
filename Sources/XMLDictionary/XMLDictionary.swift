@@ -15,7 +15,7 @@ public extension XMLParser {
             throw delegate.abortError ?? parserError!
         }
         precondition(delegate.stack.count == 1)
-        return delegate.stack.last!
+        return delegate.node
     }
 
     enum DictionaryError: Error {
@@ -74,32 +74,34 @@ extension NSMutableDictionary {
 class Delegate: NSObject, XMLParserDelegate {
     var stack = [NSMutableDictionary()]
 
+    var node: NSMutableDictionary { stack.last! }
+
     var abortError: Error?
 
     func parser(_ parser: XMLParser, didStartElement elementName: String, namespaceURI: String?, qualifiedName qName: String?, attributes attributeDict: [String : String] = [:]) {
 
-        let node = NSMutableDictionary(
+        let newNode = NSMutableDictionary(
             dictionary: Dictionary(
                 uniqueKeysWithValues: attributeDict.map { ("@" + $0, $1) }
             )
         )
 
-        stack.last!.append(value: node, forKey: elementName)
+        node.append(value: newNode, forKey: elementName)
 
-        stack.append(node)
+        stack.append(newNode)
     }
 
     func parser(_ parser: XMLParser, foundCharacters string: String) {
-        stack.last!.append(value: string, forKey: "#text")
+        node.append(value: string, forKey: "#text")
     }
 
     func parser(_ parser: XMLParser, foundCDATA CDATABlock: Data) {
-        stack.last!.append(value: String(data: CDATABlock, encoding: .utf8)!, forKey: "#cdata")
+        node.append(value: String(data: CDATABlock, encoding: .utf8)!, forKey: "#cdata")
     }
 
     func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName qName: String?) {
         do {
-            try stack.last!.normalize()
+            try node.normalize()
         } catch {
             abortError = error
             parser.abortParsing()
@@ -109,7 +111,7 @@ class Delegate: NSObject, XMLParserDelegate {
 
     func parserDidEndDocument(_ parser: XMLParser) {
         do {
-            try stack.last!.normalize()
+            try node.normalize()
         } catch {
             abortError = error
             parser.abortParsing()
