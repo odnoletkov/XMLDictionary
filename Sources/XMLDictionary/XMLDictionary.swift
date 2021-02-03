@@ -18,8 +18,8 @@ public extension XMLParser {
         return delegate.node
     }
 
-    enum DictionaryError: Error {
-        case notSupportedSemiStructuredXML
+    enum DictionaryErrorCode: Int {
+        case notSupportedSemiStructuredXML = 1000
     }
 }
 
@@ -43,7 +43,7 @@ extension NSMutableDictionary {
         case 1:
             self["#text"] = texts[0]
         default:
-            throw XMLParser.DictionaryError.notSupportedSemiStructuredXML
+            throw NSError(dictionaryError: .notSupportedSemiStructuredXML)
         }
 
         let cdatas = self["#cdata"] as! [String]? ?? []
@@ -53,7 +53,7 @@ extension NSMutableDictionary {
         case 1:
             self["#cdata"] = cdatas[0]
         default:
-            throw XMLParser.DictionaryError.notSupportedSemiStructuredXML
+            throw NSError(dictionaryError: .notSupportedSemiStructuredXML)
         }
 
         for (key, value) in self where value is NSArray {
@@ -100,12 +100,7 @@ class Delegate: NSObject, XMLParserDelegate {
     }
 
     func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName qName: String?) {
-        do {
-            try node.normalize()
-        } catch {
-            abortError = error
-            parser.abortParsing()
-        }
+        parserDidEndDocument(parser)
         stack.removeLast()
     }
 
@@ -113,8 +108,37 @@ class Delegate: NSObject, XMLParserDelegate {
         do {
             try node.normalize()
         } catch {
-            abortError = error
+            abortError = (error as NSError).merging(userInfo: ["path": currentPath])
             parser.abortParsing()
         }
+    }
+
+    var currentPath: [String] {
+        zip(stack.reversed(), stack.reversed().dropFirst())
+            .map { child, parent in
+                parent
+                    .first { ($1 as? [AnyObject])?.contains { $0 === child } == true }!
+                    .key as! String
+            }
+            .reversed()
+    }
+}
+
+extension NSError {
+    convenience init(dictionaryError code: XMLParser.DictionaryErrorCode) {
+        self.init(
+            domain: XMLParser.errorDomain,
+            code: code.rawValue,
+            userInfo: [NSLocalizedDescriptionKey: String(describing: code)]
+        )
+    }
+
+    func merging(userInfo: [String: Any]) -> NSError {
+        let error = self as NSError
+        return NSError(
+            domain: error.domain,
+            code: error.code,
+            userInfo: error.userInfo.merging(userInfo) { $1 }
+        )
     }
 }
