@@ -17,6 +17,10 @@ final class XMLDictionaryTests: XCTestCase {
         }
     }
 
+    func testDash() throws {
+        XCTAssertNoThrow(try NSDictionary(XML: "<a>1–</a>".data(using: .utf8)!))
+    }
+
     /// Source: https://goessner.net/download/prj/jsonxml/xmljson_test.html
     func testOriginalFixtures() throws {
         struct Sample: Decodable {
