@@ -8,11 +8,16 @@ let package = Package(
         .library(
             name: "XMLDictionary",
             targets: ["XMLDictionary"]),
+        .executable(
+            name: "xmltodict",
+            targets: ["xmltodict"])
     ],
     targets: [
         .target(
-            name: "XMLDictionary",
-            dependencies: []),
+            name: "XMLDictionary"),
+        .target(
+            name: "xmltodict",
+            dependencies: ["XMLDictionary"]),
         .testTarget(
             name: "XMLDictionaryTests",
             dependencies: ["XMLDictionary"],
