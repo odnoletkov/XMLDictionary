@@ -140,7 +140,7 @@ extension NSError {
         .init(
             domain: domain,
             code: code,
-            userInfo: userInfo.merging(userInfo) { $1 }
+            userInfo: self.userInfo.merging(userInfo) { $1 }
         )
     }
 
