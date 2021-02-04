@@ -60,7 +60,7 @@ final class XMLDictionaryTests: XCTestCase {
         for sample in samples {
 
             guard sample.semistructured != true else {
-                XCTAssertThrowsError(try NSDictionary(XML: sample.xmlData), "") {
+                XCTAssertThrowsError(try NSDictionary(XML: sample.xmlData), sample.xml) {
                     XCTAssertEqual(
                         ($0 as NSError).identity,
                         NSError(dictionaryError: .notSupportedSemiStructuredXML).identity

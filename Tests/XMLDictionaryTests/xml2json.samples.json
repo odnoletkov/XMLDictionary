@@ -24,6 +24,7 @@
     "json": "{\n  \"e\":{\"a\":[\n      \"text\",\n      \"text\"\n    ]}\n}"
   },
   {
+    "semistructured": true,
     "xml": "<e> text <a>text</a> </e>",
     "json": "{\n  \"e\":{\n    \"#text\":\" text \",\n    \"a\":\"text\"\n  }\n}"
   },
@@ -53,6 +54,7 @@
     "json": "{\n  \"html\":{\n    \"head\":{\n      \"title\":\"Xml/Json\",\n      \"meta\":{\n        \"@name\":\"x\",\n        \"@content\":\"y\"\n      }\n    },\n    \"body\":null\n  }\n}"
   },
   {
+    "semistructured": true,
     "xml": "<ol class=\"xoxo\">   <li>Subject 1     <ol>       <li>subpoint a</li>      <li>subpoint b</li>     </ol>   </li>   <li><span>Subject 2</span>     <ol compact=\"compact\">       <li>subpoint c</li>       <li>subpoint d</li>     </ol>  </li></ol>",
     "json": "{\n  \"ol\":{\n    \"@class\":\"xoxo\",\n    \"li\":[\n      {\n        \"#text\":\"Subject 1     \",\n        \"ol\":{\"li\":[\n            \"subpoint a\",\n            \"subpoint b\"\n          ]}\n      },\n      {\n        \"span\":\"Subject 2\",\n        \"ol\":{\n          \"@compact\":\"compact\",\n          \"li\":[\n            \"subpoint c\",\n            \"subpoint d\"\n          ]\n        }\n      }\n    ]\n  }\n}"
   },
@@ -74,6 +76,7 @@
     "json": "{\n  \"e\":\"\\n  some text\\n  <![CDATA[ .. some data .. ]]>\\n  more text\\n\"\n}"
   },
   {
+    "semistructured": true,
     "xml": "<e>\n  some text\n  <![CDATA[ .. some data .. ]]>\n  <a />\n</e>",
     "json": "{\n  \"e\":{\n    \"#text\":\"\\n  some text\\n  \",\n    \"#cdata\":\" .. some data .. \",\n    \"a\":null\n  }\n}"
   },

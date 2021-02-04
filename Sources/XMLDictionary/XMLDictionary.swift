@@ -38,26 +38,22 @@ extension NSMutableDictionary {
     func normalize() throws {
         let texts = (self["#text"] as! [String]? ?? [])
             .filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
-        switch texts.count {
-        case 0:
-            self["#text"] = nil
-        case 1:
-            self["#text"] = texts[0]
-        default:
-            throw NSError(dictionaryError: .notSupportedSemiStructuredXML)
-        }
+        self["#text"] = texts.isEmpty ? nil : texts.joined()
 
         let cdatas = self["#cdata"] as! [String]? ?? []
-        switch cdatas.count {
-        case 0:
+        switch (cdatas.count, texts.count) {
+        case (0, _):
             break
-        case 1:
+        case (1, 0):
             self["#cdata"] = cdatas[0]
         default:
             throw NSError(dictionaryError: .notSupportedSemiStructuredXML)
         }
 
         for (key, value) in self where value is NSArray {
+            if !texts.isEmpty {
+                throw NSError(dictionaryError: .notSupportedSemiStructuredXML)
+            }
             let children = (value as! [NSMutableDictionary]).map(\.normalized)
             self[key] = children.count == 1 ? children[0] : children
         }
