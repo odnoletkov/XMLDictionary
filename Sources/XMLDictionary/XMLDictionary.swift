@@ -92,10 +92,6 @@ class Delegate: NSObject, XMLParserDelegate {
         node.append(value: string, forKey: "#text")
     }
 
-    func parser(_ parser: XMLParser, foundCDATA CDATABlock: Data) {
-        node.append(value: String(data: CDATABlock, encoding: .utf8)!, forKey: "#cdata")
-    }
-
     func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName qName: String?) {
         parserDidEndDocument(parser)
         if abortError == nil {

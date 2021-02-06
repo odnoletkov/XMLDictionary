@@ -46,6 +46,7 @@ final class XMLDictionaryTests: XCTestCase {
     /// Source: https://goessner.net/download/prj/jsonxml/xmljson_test.html
     func testOriginalFixtures() throws {
         struct Sample: Decodable {
+            let includesCDATA: Bool?
             let semistructured: Bool?
             let xml: String
             let json: String
@@ -58,6 +59,10 @@ final class XMLDictionaryTests: XCTestCase {
         )
 
         for sample in samples {
+
+            guard sample.includesCDATA != true else {
+                continue
+            }
 
             guard sample.semistructured != true else {
                 XCTAssertThrowsError(try NSDictionary(XML: sample.xmlData), sample.xml) {
