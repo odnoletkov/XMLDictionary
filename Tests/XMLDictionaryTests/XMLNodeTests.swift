@@ -79,47 +79,33 @@ struct XMLNode {
         self.value = value
     }
 
-    var text: String {
+    var denormalizedValue: NSDictionary {
         switch value {
         case let string as String:
-            return string
+            return ["#text": string]
         case let dictionary as NSDictionary:
-            return dictionary["#text"] as! String? ?? ""
+            return dictionary
         default:
             preconditionFailure()
         }
+    }
+
+    var text: String {
+        denormalizedValue["#text"] as! String? ?? ""
     }
 
     subscript(_ attribute: StaticString) -> String? {
-        switch value {
-        case is String:
-            return nil
-        case let dictionary as NSDictionary:
-            return dictionary["@" + attribute.description] as! String?
-        default:
-            preconditionFailure()
-        }
+        denormalizedValue["@" + attribute.description] as! String?
     }
 
     func children(_ name: StaticString) -> [XMLNode] {
-        switch value {
-        case is String:
+        switch denormalizedValue[name.description] {
+        case let array as NSArray:
+            return array.map(XMLNode.init)
+        case nil:
             return []
-        case let dictionary as NSDictionary:
-            switch dictionary[name.description] {
-            case let string as String:
-                return [XMLNode(string)]
-            case let dictionary as NSDictionary:
-                return [XMLNode(dictionary)]
-            case let array as NSArray:
-                return array.map(XMLNode.init)
-            case .none:
-                return []
-            default:
-                preconditionFailure()
-            }
-        default:
-            preconditionFailure()
+        case let value?:
+            return [XMLNode(value)]
         }
     }
 
