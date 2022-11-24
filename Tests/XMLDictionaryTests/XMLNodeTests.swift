@@ -15,29 +15,27 @@ final class XMLNodeTests: XCTestCase {
             """.data(using: .utf8)!
         )
 
-        let root = try XMLNode(dict).root
+        let root = try XMLNode.dictionary(dict).root
 
         let nullNode = try root.null
-        XCTAssertEqual(nullNode.text, "")
-        XCTAssertNil(nullNode["attr"])
+        XCTAssertEqual(try nullNode.text, "")
+        XCTAssertNil(try nullNode["attr"])
         XCTAssertEqual(try nullNode.children("child").count, 0)
         XCTAssertThrowsError(try nullNode.child) {
             XCTAssertEqual($0 as? XMLNode.Error, XMLNode.Error.missingChild("child"))
         }
 
         let textNode = try root.childWithText
-        XCTAssertTrue(textNode.value is String)
-        XCTAssertEqual(textNode.text, "foo")
-        XCTAssertNil(textNode["attr"])
+        XCTAssertEqual(try textNode.text, "foo")
+        XCTAssertNil(try textNode["attr"])
         XCTAssertEqual(try textNode.children("child").count, 0)
         XCTAssertThrowsError(try textNode.child) {
             XCTAssertEqual($0 as? XMLNode.Error, XMLNode.Error.missingChild("child"))
         }
 
         let dictionaryNode = try root.childWithoutText
-        XCTAssertTrue(dictionaryNode.value is NSDictionary)
-        XCTAssertEqual(dictionaryNode.text, "")
-        XCTAssertEqual(dictionaryNode["attr"], "value"); XCTAssertNil(dictionaryNode["non-existent"])
+        XCTAssertEqual(try dictionaryNode.text, "")
+        XCTAssertEqual(try dictionaryNode["attr"], "value"); XCTAssertNil(try dictionaryNode["non-existent"])
         XCTAssertEqual(try dictionaryNode.children("child").count, 0)
         XCTAssertThrowsError(try dictionaryNode.child) {
             XCTAssertEqual($0 as? XMLNode.Error, XMLNode.Error.missingChild("child"))
@@ -53,48 +51,67 @@ final class XMLNodeTests: XCTestCase {
             XCTAssertEqual($0 as? XMLNode.Error, XMLNode.Error.multipleChildren("child"))
         }
 
-        XCTAssertThrowsError(try XMLNode(["root": 1]).root) {
+        XCTAssertThrowsError(try XMLNode.dictionary(["root": 1]).root) {
+            XCTAssertEqual($0 as? XMLNode.Error, XMLNode.Error.unsupportedType("__NSCFNumber"))
+        }
+        XCTAssertThrowsError(try XMLNode.dictionary(["#text": 1]).text) {
+            XCTAssertEqual($0 as? XMLNode.Error, XMLNode.Error.unsupportedType("__NSCFNumber"))
+        }
+        XCTAssertThrowsError(try XMLNode.dictionary(["@attr": 1])["attr"]) {
             XCTAssertEqual($0 as? XMLNode.Error, XMLNode.Error.unsupportedType("__NSCFNumber"))
         }
     }
 }
 
 @dynamicMemberLookup
-struct XMLNode {
-
-    /// String or NSDictionary
-    let value: Any
-
-    init(_ dictionary: NSDictionary) {
-        self.value = dictionary
-    }
+enum XMLNode {
+    case string(_: String)
+    case dictionary(_: NSDictionary)
 
     private init(_ value: Any) throws {
         switch value {
-        case is String, is NSDictionary:
-            self.value = value
+        case let string as String:
+            self = .string(string)
+        case let dictionary as NSDictionary:
+            self = .dictionary(dictionary)
         default:
             throw Error.unsupportedType(String(describing: type(of: value)))
         }
     }
 
-    var denormalizedValue: NSDictionary {
-        switch value {
-        case let string as String:
+    private var denormalizedValue: NSDictionary {
+        switch self {
+        case .string(let string):
             return ["#text": string]
-        case let dictionary as NSDictionary:
+        case .dictionary(let dictionary):
             return dictionary
-        default:
-            preconditionFailure()
         }
     }
 
     var text: String {
-        denormalizedValue["#text"] as! String? ?? ""
+        get throws {
+            switch denormalizedValue["#text"] {
+            case nil:
+                return ""
+            case let string as String:
+                return string
+            case let value?:
+                throw Error.unsupportedType(String(describing: type(of: value)))
+            }
+        }
     }
 
     subscript(_ attribute: StaticString) -> String? {
-        denormalizedValue["@" + attribute.description] as! String?
+        get throws {
+            switch denormalizedValue["@" + attribute.description] {
+            case nil:
+                return nil
+            case let string as String:
+                return string
+            case let value?:
+                throw Error.unsupportedType(String(describing: type(of: value)))
+            }
+        }
     }
 
     func children(_ name: StaticString) throws -> [XMLNode] {
