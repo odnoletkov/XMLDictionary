@@ -1,7 +1,7 @@
 [
   {
     "xml": "<e/>",
-    "json": "{\n  \"e\":null\n}"
+    "json": "{\n  \"e\":\"\"\n}"
   },
   {
     "xml": "<e>text</e>",
@@ -51,7 +51,7 @@
   },
   {
     "xml": "<html> <head>   <title>Xml/Json</title>   <meta name=\"x\" content=\"y\" /> </head> <body> </body></html>",
-    "json": "{\n  \"html\":{\n    \"head\":{\n      \"title\":\"Xml/Json\",\n      \"meta\":{\n        \"@name\":\"x\",\n        \"@content\":\"y\"\n      }\n    },\n    \"body\":null\n  }\n}"
+    "json": "{\n  \"html\":{\n    \"head\":{\n      \"title\":\"Xml/Json\",\n      \"meta\":{\n        \"@name\":\"x\",\n        \"@content\":\"y\"\n      }\n    },\n    \"body\":\"\"\n  }\n}"
   },
   {
     "semistructured": true,

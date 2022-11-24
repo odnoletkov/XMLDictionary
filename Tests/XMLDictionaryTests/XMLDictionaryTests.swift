@@ -8,7 +8,7 @@ final class XMLDictionaryTests: XCTestCase {
     func testExample() {
         XCTAssertEqual(
             try NSDictionary(XML: "<xml/>".data(using: .utf8)!),
-            ["xml": NSNull()]
+            ["xml": ""]
         )
     }
 

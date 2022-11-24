@@ -18,8 +18,7 @@ final class XMLNodeTests: XCTestCase {
         let root = try XMLNode(dict).root
 
         let nullNode = try root.null
-        XCTAssertTrue(nullNode.value is NSNull)
-        XCTAssertNil(nullNode.text)
+        XCTAssertEqual(nullNode.text, "")
         XCTAssertNil(nullNode["attr"])
         XCTAssertEqual(nullNode.children("child").count, 0)
         XCTAssertThrowsError(try nullNode.child) {
@@ -37,7 +36,7 @@ final class XMLNodeTests: XCTestCase {
 
         let dictionaryNode = try root.childWithoutText
         XCTAssertTrue(dictionaryNode.value is NSDictionary)
-        XCTAssertNil(dictionaryNode.text) // TODO: should be empty?
+        XCTAssertEqual(dictionaryNode.text, "")
         XCTAssertEqual(dictionaryNode["attr"], "value"); XCTAssertNil(dictionaryNode["non-existent"])
         XCTAssertEqual(dictionaryNode.children("child").count, 0)
         XCTAssertThrowsError(try dictionaryNode.child) {
@@ -64,12 +63,8 @@ final class XMLNodeTests: XCTestCase {
 @dynamicMemberLookup
 struct XMLNode {
 
-    /// NSNull, String or NSDictionary
+    /// String or NSDictionary
     let value: Any
-
-    init(_ null: NSNull) {
-        self.value = null
-    }
 
     init(_ string: String) {
         self.value = string
@@ -80,18 +75,16 @@ struct XMLNode {
     }
 
     private init(_ value: Any) {
-        precondition(value is String || value is NSDictionary || value is NSNull)
+        precondition(value is String || value is NSDictionary)
         self.value = value
     }
 
-    var text: String? {
+    var text: String {
         switch value {
-        case is NSNull:
-            return nil
         case let string as String:
             return string
         case let dictionary as NSDictionary:
-            return dictionary["#text"] as! String?
+            return dictionary["#text"] as! String? ?? ""
         default:
             preconditionFailure()
         }
@@ -99,7 +92,7 @@ struct XMLNode {
 
     subscript(_ attribute: StaticString) -> String? {
         switch value {
-        case is NSNull, is String:
+        case is String:
             return nil
         case let dictionary as NSDictionary:
             return dictionary["@" + attribute.description] as! String?
@@ -110,12 +103,10 @@ struct XMLNode {
 
     func children(_ name: StaticString) -> [XMLNode] {
         switch value {
-        case is NSNull, is String:
+        case is String:
             return []
         case let dictionary as NSDictionary:
             switch dictionary[name.description] {
-            case let null as NSNull:
-                return [XMLNode(null)]
             case let string as String:
                 return [XMLNode(string)]
             case let dictionary as NSDictionary:

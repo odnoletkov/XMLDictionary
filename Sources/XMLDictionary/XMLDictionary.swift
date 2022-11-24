@@ -27,7 +27,7 @@ public extension XMLParser {
 extension NSMutableDictionary {
     var normalized: Any {
         if count == 0 {
-            return NSNull()
+            return ""
         } else if count == 1, let text = self["#text"] {
             return text
         } else {
