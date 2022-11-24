@@ -20,7 +20,7 @@ final class XMLNodeTests: XCTestCase {
         let nullNode = try root.null
         XCTAssertEqual(nullNode.text, "")
         XCTAssertNil(nullNode["attr"])
-        XCTAssertEqual(nullNode.children("child").count, 0)
+        XCTAssertEqual(try nullNode.children("child").count, 0)
         XCTAssertThrowsError(try nullNode.child) {
             XCTAssertEqual($0 as? XMLNode.Error, XMLNode.Error.missingChild("child"))
         }
@@ -29,7 +29,7 @@ final class XMLNodeTests: XCTestCase {
         XCTAssertTrue(textNode.value is String)
         XCTAssertEqual(textNode.text, "foo")
         XCTAssertNil(textNode["attr"])
-        XCTAssertEqual(textNode.children("child").count, 0)
+        XCTAssertEqual(try textNode.children("child").count, 0)
         XCTAssertThrowsError(try textNode.child) {
             XCTAssertEqual($0 as? XMLNode.Error, XMLNode.Error.missingChild("child"))
         }
@@ -38,27 +38,26 @@ final class XMLNodeTests: XCTestCase {
         XCTAssertTrue(dictionaryNode.value is NSDictionary)
         XCTAssertEqual(dictionaryNode.text, "")
         XCTAssertEqual(dictionaryNode["attr"], "value"); XCTAssertNil(dictionaryNode["non-existent"])
-        XCTAssertEqual(dictionaryNode.children("child").count, 0)
+        XCTAssertEqual(try dictionaryNode.children("child").count, 0)
         XCTAssertThrowsError(try dictionaryNode.child) {
             XCTAssertEqual($0 as? XMLNode.Error, XMLNode.Error.missingChild("child"))
         }
 
-        XCTAssertEqual(root.children("null").count, 1)
-        XCTAssertEqual(root.children("childWithText").count, 1)
-        XCTAssertEqual(root.children("childWithoutText").count, 1)
-        XCTAssertEqual(root.children("child").count, 3)
-        XCTAssertEqual(root.children("nonExistent").count, 0)
+        XCTAssertEqual(try root.children("null").count, 1)
+        XCTAssertEqual(try root.children("childWithText").count, 1)
+        XCTAssertEqual(try root.children("childWithoutText").count, 1)
+        XCTAssertEqual(try root.children("child").count, 3)
+        XCTAssertEqual(try root.children("nonExistent").count, 0)
 
         XCTAssertThrowsError(try root.child) {
             XCTAssertEqual($0 as? XMLNode.Error, XMLNode.Error.multipleChildren("child"))
         }
+
+        XCTAssertThrowsError(try XMLNode(["root": 1]).root) {
+            XCTAssertEqual($0 as? XMLNode.Error, XMLNode.Error.unsupportedType("__NSCFNumber"))
+        }
     }
 }
-
-//@dynamicMemberLookup
-//protocol Test: Equatable {
-//    subscript(dynamicMember singleChildName: StaticString) -> any Test { get }
-//}
 
 @dynamicMemberLookup
 struct XMLNode {
@@ -66,17 +65,17 @@ struct XMLNode {
     /// String or NSDictionary
     let value: Any
 
-    init(_ string: String) {
-        self.value = string
-    }
-
     init(_ dictionary: NSDictionary) {
         self.value = dictionary
     }
 
-    private init(_ value: Any) {
-        precondition(value is String || value is NSDictionary)
-        self.value = value
+    private init(_ value: Any) throws {
+        switch value {
+        case is String, is NSDictionary:
+            self.value = value
+        default:
+            throw Error.unsupportedType(String(describing: type(of: value)))
+        }
     }
 
     var denormalizedValue: NSDictionary {
@@ -98,20 +97,20 @@ struct XMLNode {
         denormalizedValue["@" + attribute.description] as! String?
     }
 
-    func children(_ name: StaticString) -> [XMLNode] {
+    func children(_ name: StaticString) throws -> [XMLNode] {
         switch denormalizedValue[name.description] {
         case let array as NSArray:
-            return array.map(XMLNode.init)
+            return try array.map(XMLNode.init)
         case nil:
             return []
         case let value?:
-            return [XMLNode(value)]
+            return [try XMLNode(value)]
         }
     }
 
     subscript(dynamicMember singleChildName: StaticString) -> XMLNode {
         get throws {
-            let children = children(singleChildName)
+            let children = try children(singleChildName)
             switch children.count {
             case 0:
                 throw Error.missingChild(singleChildName.description)
@@ -124,7 +123,8 @@ struct XMLNode {
     }
 
     enum Error: Swift.Error, Equatable {
-        case missingChild(_ name: String)
-        case multipleChildren(_ name: String)
+        case missingChild(_: String)
+        case multipleChildren(_: String)
+        case unsupportedType(_: String)
     }
 }
