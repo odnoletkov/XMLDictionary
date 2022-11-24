@@ -5,14 +5,14 @@ import libxml2
 
 final class XMLDictionaryTests: XCTestCase {
 
-    func testExample() throws {
+    func testExample() {
         XCTAssertEqual(
             try NSDictionary(XML: "<xml/>".data(using: .utf8)!),
             ["xml": NSNull()]
         )
     }
 
-    func testError() throws {
+    func testError() {
         XCTAssertThrowsError(try NSDictionary(XML: "xml".data(using: .utf8)!), "") {
             XCTAssertEqual(
                 ($0 as NSError).identity,
@@ -21,7 +21,7 @@ final class XMLDictionaryTests: XCTestCase {
         }
     }
 
-    func testErrorPath() throws {
+    func testErrorPath() {
         XCTAssertThrowsError(try NSDictionary(XML: "<a><b a=\"1\"><c/><d></b></a>".data(using: .utf8)!), "") {
             XCTAssertEqual(
                 $0 as NSError,
@@ -39,7 +39,7 @@ final class XMLDictionaryTests: XCTestCase {
         }
     }
 
-    func testDash() throws {
+    func testDash() {
         XCTAssertNoThrow(try NSDictionary(XML: "<a>1–</a>".data(using: .utf8)!))
     }
 
@@ -81,5 +81,4 @@ final class XMLDictionaryTests: XCTestCase {
             )
         }
     }
-
 }
