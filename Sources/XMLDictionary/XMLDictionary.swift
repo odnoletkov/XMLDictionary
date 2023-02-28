@@ -69,9 +69,9 @@ extension NSMutableDictionary {
 }
 
 class Delegate: NSObject, XMLParserDelegate {
-    var stack = [NSMutableDictionary()]
+    var stack: [(name: String, node: NSMutableDictionary)] = [("", [:])]
 
-    var node: NSMutableDictionary { stack.last! }
+    var node: NSMutableDictionary { stack.last!.node }
 
     var abortError: Error?
 
@@ -85,7 +85,7 @@ class Delegate: NSObject, XMLParserDelegate {
 
         node.append(value: newNode, forKey: elementName)
 
-        stack.append(newNode)
+        stack.append((elementName, newNode))
     }
 
     func parser(_ parser: XMLParser, foundCharacters string: String) {
@@ -109,13 +109,7 @@ class Delegate: NSObject, XMLParserDelegate {
     }
 
     var currentPath: [String] {
-        zip(stack.reversed(), stack.reversed().dropFirst())
-            .map { child, parent in
-                parent
-                    .first { ($1 as? [AnyObject])?.contains { $0 === child } == true }!
-                    .key as! String
-            }
-            .reversed()
+        stack[1...].map(\.name)
     }
 }
 

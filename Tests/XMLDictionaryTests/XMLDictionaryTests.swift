@@ -37,6 +37,22 @@ final class XMLDictionaryTests: XCTestCase {
                     .merging(userInfo: ["path": ["a", "b"]])
             )
         }
+
+        XCTAssertThrowsError(try NSDictionary(XML: "a".data(using: .utf8)!), "") {
+            XCTAssertEqual(
+                $0 as NSError,
+                NSError(domain: XMLParser.errorDomain, code: Int(XML_ERR_INTERNAL_ERROR.rawValue))
+                    .merging(userInfo: ["path": []])
+            )
+        }
+
+        XCTAssertThrowsError(try NSDictionary(XML: "<a>3".data(using: .utf8)!), "") {
+            XCTAssertEqual(
+                $0 as NSError,
+                NSError(domain: XMLParser.errorDomain, code: Int(XML_ERR_USER_STOP.rawValue))
+                    .merging(userInfo: ["path": ["a"]])
+            )
+        }
     }
 
     func testDash() {
