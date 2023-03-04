@@ -26,7 +26,7 @@ final class XMLDictionaryTests: XCTestCase {
             XCTAssertEqual(
                 $0 as NSError,
                 NSError(domain: XMLParser.errorDomain, code: Int(XML_ERR_USER_STOP.rawValue))
-                    .merging(userInfo: ["path": ["a", "b", "d"]])
+                    .merging(userInfo: ["path": "/a/b/d"])
             )
         }
 
@@ -34,7 +34,7 @@ final class XMLDictionaryTests: XCTestCase {
             XCTAssertEqual(
                 $0 as NSError,
                 NSError(dictionaryError: .notSupportedSemiStructuredXML)
-                    .merging(userInfo: ["path": ["a", "b"]])
+                    .merging(userInfo: ["path": "/a/b"])
             )
         }
 
@@ -42,7 +42,7 @@ final class XMLDictionaryTests: XCTestCase {
             XCTAssertEqual(
                 $0 as NSError,
                 NSError(domain: XMLParser.errorDomain, code: Int(XML_ERR_INTERNAL_ERROR.rawValue))
-                    .merging(userInfo: ["path": []])
+                    .merging(userInfo: ["path": "/"])
             )
         }
 
@@ -50,7 +50,7 @@ final class XMLDictionaryTests: XCTestCase {
             XCTAssertEqual(
                 $0 as NSError,
                 NSError(domain: XMLParser.errorDomain, code: Int(XML_ERR_USER_STOP.rawValue))
-                    .merging(userInfo: ["path": ["a"]])
+                    .merging(userInfo: ["path": "/a"])
             )
         }
     }

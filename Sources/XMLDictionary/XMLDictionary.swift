@@ -1,4 +1,5 @@
 import Foundation
+import Combine
 
 public extension NSDictionary {
     convenience init(XML data: Data) throws {
@@ -8,19 +9,43 @@ public extension NSDictionary {
 
 public extension XMLParser {
     func parseDictionary() throws -> NSMutableDictionary {
-        precondition(delegate == nil)
-        let delegate = Delegate()
-        self.delegate = delegate
-        guard parse() else {
-            let error = delegate.abortError ?? parserError!
-            throw (error as NSError).merging(userInfo: ["path": delegate.currentPath])
-        }
-        precondition(delegate.stack.count == 1)
+        let delegate = Delegate(parser: self)
+        try delegate.parse()
         return delegate.node
     }
 
     enum DictionaryErrorCode: Int {
         case notSupportedSemiStructuredXML = 1000
+    }
+
+    var publisher: Publisher {
+        .init(parser: self)
+    }
+}
+
+extension XMLParser {
+    public class Publisher: Combine.Publisher {
+        public typealias Output = (path: String, element: XMLNode, mutableDocument: NSMutableDictionary)
+        public typealias Failure = Error
+
+        let delegate: Delegate
+
+        init(parser: XMLParser) {
+            self.delegate = .init(parser: parser)
+        }
+
+        public func receive(subscriber: some Subscriber<Output, Failure>) {
+
+            delegate.subject
+                .handleEvents(receiveCancel: delegate.parser.abortParsing)
+                .receive(subscriber: subscriber)
+
+            DispatchQueue.global().async(execute: delegate.complete)
+        }
+    }
+
+    var stream: InputStream? {
+        value(forKey: "xmlParserStream") as? InputStream
     }
 }
 
@@ -68,13 +93,48 @@ extension NSMutableDictionary {
     }
 }
 
-class Delegate: NSObject, XMLParserDelegate {
-    var stack: [(name: String, node: NSMutableDictionary)] = [("", [:])]
+class Delegate: NSObject {
 
-    var node: NSMutableDictionary { stack.last!.node }
+    var stack: [NSMutableDictionary] = [[:]]
+    var path: String = "/"
 
     var abortError: Error?
 
+    let subject = PassthroughSubject<XMLParser.Publisher.Output, Error>()
+
+    let parser: XMLParser
+
+    init(parser: XMLParser) {
+        self.parser = parser
+        super.init()
+        precondition(parser.delegate == nil)
+        parser.delegate = self
+    }
+
+    var node: NSMutableDictionary {
+        stack.last!
+    }
+
+    func parse() throws {
+        guard parser.parse() else {
+            let error = abortError ?? parser.parserError!
+            throw (error as NSError).merging(userInfo: ["path": path])
+        }
+        precondition(stack.count == 1)
+        precondition((path as NSString).pathComponents.count == 1)
+    }
+
+    func complete() {
+        do {
+            try parse()
+            subject.send(completion: .finished)
+        } catch {
+            subject.send(completion: .failure(error))
+        }
+    }
+}
+
+extension Delegate: XMLParserDelegate {
     func parser(_ parser: XMLParser, didStartElement elementName: String, namespaceURI: String?, qualifiedName qName: String?, attributes attributeDict: [String : String] = [:]) {
 
         let newNode = NSMutableDictionary(
@@ -85,7 +145,8 @@ class Delegate: NSObject, XMLParserDelegate {
 
         node.append(value: newNode, forKey: elementName)
 
-        stack.append((elementName, newNode))
+        stack.append(newNode)
+        path = (path as NSString).appendingPathComponent(elementName)
     }
 
     func parser(_ parser: XMLParser, foundCharacters string: String) {
@@ -96,20 +157,25 @@ class Delegate: NSObject, XMLParserDelegate {
         parserDidEndDocument(parser)
         if abortError == nil {
             stack.removeLast()
+            path = (path as NSString).deletingLastPathComponent
         }
     }
 
     func parserDidEndDocument(_ parser: XMLParser) {
         do {
             try node.normalize()
+            subject.send((path, XMLNode.dictionary(node), stack.first!))
         } catch {
             abortError = error
             parser.abortParsing()
         }
     }
 
-    var currentPath: [String] {
-        stack[1...].map(\.name)
+    func parser(_ parser: XMLParser, parseErrorOccurred parseError: Error) {
+        if let stream = parser.stream, stream.streamStatus == .open {
+            stream.close()
+            assert(stream.streamStatus == .closed)
+        }
     }
 }
 
@@ -122,7 +188,7 @@ extension NSError {
         )
     }
 
-    func merging(userInfo: [String: Any]) -> NSError {
+    public func merging(userInfo: [String: Any]) -> NSError {
         .init(
             domain: domain,
             code: code,
@@ -130,7 +196,7 @@ extension NSError {
         )
     }
 
-    var identity: NSError {
+    public var identity: NSError {
         .init(domain: domain, code: code)
     }
 }

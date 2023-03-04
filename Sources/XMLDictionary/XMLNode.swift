@@ -1,7 +1,7 @@
 import Foundation
 
 @dynamicMemberLookup
-public enum XMLNode {
+public enum XMLNode: Equatable {
     case string(_: String)
     case dictionary(_: NSDictionary)
 
@@ -88,4 +88,3 @@ public extension XMLNode {
         case unsupportedType(_: String)
     }
 }
-
