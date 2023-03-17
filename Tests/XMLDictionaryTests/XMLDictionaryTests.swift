@@ -15,7 +15,13 @@ final class XMLDictionaryTests: XCTestCase {
     func testError() {
         XCTAssertThrowsError(try NSDictionary(XML: "xml".data(using: .utf8)!), "") {
             XCTAssertEqual(
-                ($0 as NSError).identity,
+                $0.identity,
+                NSError(domain: XMLParser.errorDomain, code: XMLParser.ErrorCode.internalError.rawValue)
+            )
+        }
+        XCTAssertThrowsError(try NSDictionary(XML: "".data(using: .utf8)!), "") {
+            XCTAssertEqual(
+                $0.identity,
                 NSError(domain: XMLParser.errorDomain, code: XMLParser.ErrorCode.internalError.rawValue)
             )
         }
@@ -83,7 +89,7 @@ final class XMLDictionaryTests: XCTestCase {
             guard sample.semistructured != true else {
                 XCTAssertThrowsError(try NSDictionary(XML: sample.xmlData), sample.xml) {
                     XCTAssertEqual(
-                        ($0 as NSError).identity,
+                        $0.identity,
                         NSError(dictionaryError: .notSupportedSemiStructuredXML).identity
                     )
                 }

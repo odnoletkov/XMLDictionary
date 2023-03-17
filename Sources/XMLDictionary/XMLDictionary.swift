@@ -121,7 +121,7 @@ class Delegate: NSObject {
             throw (error as NSError).merging(userInfo: ["path": path])
         }
         precondition(stack.count == 1)
-        precondition((path as NSString).pathComponents.count == 1)
+        precondition(path == "/")
     }
 
     func complete() {
@@ -195,8 +195,11 @@ extension NSError {
             userInfo: self.userInfo.merging(userInfo) { $1 }
         )
     }
+}
 
+extension Error {
     public var identity: NSError {
-        .init(domain: domain, code: code)
+        let error = self as NSError
+        return .init(domain: error.domain, code: error.code)
     }
 }
