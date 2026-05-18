@@ -3,13 +3,13 @@ import XMLDictionary
 
 let data: Data
 var args = ProcessInfo.processInfo.arguments.makeIterator()
-switch (args.next(), args.next()) {
-case (.some, nil), (.some, "-"):
+switch (args.next(), args.next(), args.next()) {
+case (.some, nil, nil), (.some, "-", nil):
     data = FileHandle.standardInput.readDataToEndOfFile()
-case (.some, let path?):
+case (.some, let path?, nil):
     data = try Data(contentsOf: URL(fileURLWithPath: (path as NSString).expandingTildeInPath))
 default:
-    fatalError()
+    fatalError("usage: xmltodict [path|-]")
 }
 
 var options = JSONSerialization.WritingOptions.prettyPrinted
