@@ -122,6 +122,16 @@ class Delegate: NSObject {
             subject.send(completion: .failure(error))
         }
     }
+
+    func finishCurrentNode(_ parser: XMLParser) {
+        do {
+            try node.normalize()
+            subject.send((path, XMLNode.dictionary(node), stack.first!))
+        } catch {
+            abortError = error
+            parser.abortParsing()
+        }
+    }
 }
 
 extension Delegate: XMLParserDelegate {
@@ -144,7 +154,7 @@ extension Delegate: XMLParserDelegate {
     }
 
     func parser(_ parser: XMLParser, didEndElement elementName: String, namespaceURI: String?, qualifiedName qName: String?) {
-        parserDidEndDocument(parser)
+        finishCurrentNode(parser)
         if abortError == nil {
             stack.removeLast()
             path = (path as NSString).deletingLastPathComponent
@@ -152,13 +162,7 @@ extension Delegate: XMLParserDelegate {
     }
 
     func parserDidEndDocument(_ parser: XMLParser) {
-        do {
-            try node.normalize()
-            subject.send((path, XMLNode.dictionary(node), stack.first!))
-        } catch {
-            abortError = error
-            parser.abortParsing()
-        }
+        finishCurrentNode(parser)
     }
 
     func parser(_ parser: XMLParser, parseErrorOccurred parseError: Error) {
