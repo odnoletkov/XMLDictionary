@@ -65,6 +65,26 @@ final class XMLDictionaryTests: XCTestCase {
         XCTAssertNoThrow(try NSDictionary(XML: "<a>1–</a>".data(using: .utf8)!))
     }
 
+    func testCDATAIsTreatedAsText() throws {
+        XCTAssertEqual(
+            try NSDictionary(XML: "<e><![CDATA[hello]]></e>".data(using: .utf8)!),
+            ["e": "hello"]
+        )
+
+        XCTAssertEqual(
+            try NSDictionary(XML: "<e><![CDATA[x]]><![CDATA[y]]></e>".data(using: .utf8)!),
+            ["e": "xy"]
+        )
+
+        XCTAssertThrowsError(try NSDictionary(XML: "<e><a/><![CDATA[hello]]><b/></e>".data(using: .utf8)!)) {
+            XCTAssertEqual(
+                $0 as NSError,
+                NSError(dictionaryError: .notSupportedSemiStructuredXML)
+                    .merging(userInfo: ["path": "/e"])
+            )
+        }
+    }
+
     /// Source: https://goessner.net/download/prj/jsonxml/xmljson_test.html
     func testOriginalFixtures() throws {
         struct Sample: Decodable {

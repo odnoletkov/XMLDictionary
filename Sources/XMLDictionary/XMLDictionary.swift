@@ -65,16 +65,6 @@ extension NSMutableDictionary {
             .filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
         self["#text"] = texts.isEmpty ? nil : texts.joined()
 
-        let cdatas = self["#cdata"] as! [String]? ?? []
-        switch (cdatas.count, texts.count) {
-        case (0, _):
-            break
-        case (1, 0):
-            self["#cdata"] = cdatas[0]
-        default:
-            throw NSError(dictionaryError: .notSupportedSemiStructuredXML)
-        }
-
         for (key, value) in self where value is NSArray {
             if !texts.isEmpty {
                 throw NSError(dictionaryError: .notSupportedSemiStructuredXML)
